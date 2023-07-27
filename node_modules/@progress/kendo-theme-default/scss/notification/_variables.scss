@@ -1,0 +1,60 @@
+// Notification
+
+/// The horizontal padding of the Notification.
+/// @group notification
+$kendo-notification-padding-x: 8px !default;
+/// The vertical padding of the Notification.
+/// @group notification
+$kendo-notification-padding-y: 4px !default;
+/// The width of the border around the Notification.
+/// @group notification
+$kendo-notification-border-width: 1px !default;
+/// The border radius of the Notification.
+/// @group notification
+$kendo-notification-border-radius: $kendo-border-radius-md !default;
+/// The font family of the Notification.
+/// @group notification
+$kendo-notification-font-family: $kendo-font-family !default;
+/// The font size of the Notification.
+/// @group notification
+$kendo-notification-font-size: $kendo-font-size-sm !default;
+/// The line height of the Notification.
+/// @group notification
+$kendo-notification-line-height: $kendo-line-height-md !default;
+/// The background color of the Notification.
+/// @group notification
+$kendo-notification-bg: $kendo-component-bg !default;
+/// The text color of the Notification.
+/// @group notification
+$kendo-notification-text: $kendo-component-text !default;
+/// The border color of the Notification.
+/// @group notification
+$kendo-notification-border: $kendo-component-border !default;
+/// The box shadow of the Notification.
+/// @group notification
+$kendo-notification-shadow: $kendo-popup-shadow !default;
+
+/// The horizontal spacing of the Notification icon.
+/// @group notification
+$kendo-notification-icon-spacing: $kendo-icon-spacing !default;
+
+@function notification-theme( $colors ) {
+    $_theme: ();
+
+    @each $name, $color in $colors {
+        $_theme: k-map-merge(( $name: (
+            color: k-contrast-legacy( $color ),
+            background-color: $color,
+            border: $color,
+        )), $_theme );
+    }
+
+    @return $_theme;
+}
+
+/// The theme colors map for the Notification.
+/// @group notification
+$kendo-notification-theme-colors: $kendo-theme-colors !default;
+/// The generated theme colors map for the Notification.
+/// @group notification
+$kendo-notification-theme: notification-theme( $kendo-notification-theme-colors ) !default;

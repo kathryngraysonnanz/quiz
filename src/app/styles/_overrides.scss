@@ -1,0 +1,14 @@
+// Compatible with @progress/kendo-theme-default v.6.4.0
+
+%tb-typography {
+  @include typography-classes($tb-typography);
+}
+
+%tb-effects {
+  @include effects-classes($tb-effects);
+}
+
+    .k-button{
+                  @extend %tb-effects-Shadow;
+      
+}
