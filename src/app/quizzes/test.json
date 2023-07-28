@@ -1,0 +1,26 @@
+{
+    "name": "Sample Quiz 1",
+    "questions": [
+        {
+            "question": "What is the first month of the year?",
+            "options": ["January", "March", "May", "November"], 
+            "answer": "January"
+
+        }, 
+        {
+            "question": "What is my favorite color?", 
+            "options": ["Pink", "Purple", "Neon Yellow", "Green"], 
+            "answer": "Green"
+        },
+        {
+            "question": "What is my least favorite color?", 
+            "options": ["Pink", "Purple", "Neon Yellow", "Green"], 
+            "answer": "Neon Yellow"
+        },
+        {
+            "question": "What is my name?", 
+            "options": ["Kay", "Kathryn", "Kat", "Kathy"], 
+            "answer": "Kathryn"
+        }
+    ]
+}
