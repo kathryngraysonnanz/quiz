@@ -2,12 +2,14 @@
 
 import styles from './page.module.scss'
 
-import { TextBox, InputPrefix, InputSeparator } from "@progress/kendo-react-inputs"
+import { TextBox, InputPrefix, InputSeparator, RadioGroup } from "@progress/kendo-react-inputs"
 import { Icon } from "@progress/kendo-react-common";
 import { Button } from "@progress/kendo-react-buttons"; 
+import { Chart, ChartSeries, ChartSeriesItem } from "@progress/kendo-react-charts";
 import { database } from "../firebase/config";
 import { ref, set, onValue } from "firebase/database";
 import { useState, useEffect } from 'react';
+import "hammerjs";
 
 import content from '../quizzes/test.json'
 
@@ -19,21 +21,32 @@ export default function Play() {
     const [GMReady, setGMReady] = useState(false);
     const [disabled, setDisabled] = useState(true);
     const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [showResults, setShowResults] = useState(false);
+    const [results, setResults] = useState([0,0,0,0])
 
-
+    // Updates username when user types, changes to uppercase, and requires at least one letter to unlock button 
     function handleChange(event) {
         setDisabled(false);
         setUsername(event.target.value.toUpperCase());
     }
     
     //TO-DO: Update "gameID" to be randomly generated value representing a single game 
+    //Logs username in Firebase 
     function handleSubmit() {
-       setUUID(self.crypto.randomUUID());
        set(ref(database, "gameId/" + 'players/' + UUID), {
             username: username,
         });
     }
 
+    //Logs current answer in Firebase when user clicks 
+    const logAnswer = (e, currentQuestion) => {
+        set(ref(database, "gameId/" + 'players/' + UUID + "/" + currentQuestion), {
+            answer: e.value,
+        });
+        console.log(currentQuestion)
+    };
+
+    //Watches for when player is ready
     useEffect(() => {
         const query = ref(database, "gameId/" + 'players/' + UUID);
         return onValue(query, (snapshot) => {
@@ -45,6 +58,7 @@ export default function Play() {
           }
       )
 
+      //Watches for when GM is ready 
       useEffect(() => {
         const query = ref(database, "gameId/" + 'GM/gmReady/gmReady');
         return onValue(query, (snapshot) => {
@@ -56,19 +70,56 @@ export default function Play() {
           }
       )
 
+      //Watches for when GM shows results to players 
       useEffect(() => {
-        const query = ref(database, "gameId/" + 'GM/currentQuestion/currentQuestion');
+        const query = ref(database, "gameId/" + 'GM/currentQuestion/showResults');
+        return onValue(query, (snapshot) => {
+          const data = snapshot.val();
+          setShowResults(data);
+            });
+        }
+    )
+
+    //Watches to see when GM changes questions 
+      useEffect(() => {
+        const query = ref(database, "gameId/" + 'GM/currentQuestion/questionNumber');
         return onValue(query, (snapshot) => {
           const data = snapshot.val();
             setCurrentQuestion(data)
-          
             });
           }
       )
 
+      //Watches and counts user responses in real time 
+      let responses = []
+      let counts = {}; 
+
+      useEffect(() => {
+        const query = ref(database, "gameId/" + 'players');
+        return onValue(query, (snapshot) => {
+          const data = snapshot.val();
+
+            //Collects all responses into an array 
+            for (const property in data) {
+                responses.push(data[property][currentQuestion].answer)
+            }
+
+            //Counts the number of each different response in the array 
+            responses.forEach(function (x) { counts[x] = (counts[x] || 0) + 1; });
+        
+        });
+      })
+
+      //Maps possible answers for each question into label/value format for UI 
+      let options = content.questions[currentQuestion].options.map( option => ({
+        label: option, value: option 
+      }))
+
+      
+      
+
   return (
     <main>
-        <header>Important: if you refresh the page, you will have to rejoin the quiz and lose any points!</header>
         { !playerReady && 
             <section> 
                 <h1>Start Playing</h1>
@@ -107,10 +158,18 @@ export default function Play() {
         { playerReady && GMReady &&
             <>
                 <h1>Q: {content.questions[currentQuestion].question}</h1>
-                {
-                content.questions[currentQuestion].options.map( option => (
-                    <Button>{option}</Button>
-                ))
+
+                <RadioGroup onChange={e => { logAnswer(e, currentQuestion) }} data={options}/>
+
+                { showResults && 
+                <>
+                    <h2>A: {content.questions[currentQuestion].answer}</h2>
+                    <Chart>
+                        <ChartSeries>
+                            <ChartSeriesItem type="bar" data={Object.values(counts)} />
+                        </ChartSeries>
+                    </Chart>
+                </>
                 }
             </>
         }

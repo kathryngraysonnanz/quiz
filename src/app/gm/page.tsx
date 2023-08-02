@@ -42,7 +42,7 @@ export default function GM() {
       )
 
       useEffect(() => {
-        const query = ref(database, "gameId/" + 'GM/currentQuestion/currentQuestion');
+        const query = ref(database, "gameId/" + 'GM/currentQuestion/questionNumber');
         return onValue(query, (snapshot) => {
           const data = snapshot.val();
 
@@ -56,6 +56,11 @@ export default function GM() {
         set(ref(database, "gameId/" + 'GM/gmReady'), {
             gmReady: !GMReady,
         });
+
+        set(ref(database, "gameId/" + 'GM/currentQuestion'), {
+          questionNumber: 0,
+          showResults: false
+      });
     }
 
     function incrementSeconds() {
@@ -64,10 +69,18 @@ export default function GM() {
     }
 
     function nextQuestion() {
-        set(ref(database, "gameId/" + 'GM/currentQuestion'), {
-            currentQuestion: currentQuestion+1,
+        set(ref(database, "gameId/" + 'GM/currentQuestion/' ), {
+          questionNumber: currentQuestion+1,
+          showResults: false
         });
         setTimer(0)
+    }
+
+    function showResults() {
+      set(ref(database, "gameId/" + 'GM/currentQuestion'), {
+        questionNumber: currentQuestion,
+        showResults: true
+    });
     }
 
     let totalQuestions = content.questions.length; 
@@ -101,6 +114,7 @@ export default function GM() {
                 <p>TO-DO: show response %s</p>
                 
                 <Button onClick={nextQuestion}>Next Question</Button>
+                <Button onClick={showResults}>Show Results</Button>
             </>
         }
 
