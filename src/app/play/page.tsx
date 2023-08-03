@@ -5,7 +5,7 @@ import styles from './page.module.scss'
 import { TextBox, InputPrefix, InputSeparator, RadioGroup } from "@progress/kendo-react-inputs"
 import { Icon } from "@progress/kendo-react-common";
 import { Button } from "@progress/kendo-react-buttons"; 
-import { Chart, ChartSeries, ChartSeriesItem } from "@progress/kendo-react-charts";
+import { Chart, ChartCategoryAxis, ChartCategoryAxisItem, ChartCategoryAxisTitle, ChartSeries, ChartSeriesItem } from "@progress/kendo-react-charts";
 import { database } from "../firebase/config";
 import { ref, set, onValue } from "firebase/database";
 import { useState, useEffect } from 'react';
@@ -22,7 +22,8 @@ export default function Play() {
     const [disabled, setDisabled] = useState(true);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [showResults, setShowResults] = useState(false);
-    const [results, setResults] = useState([0,0,0,0])
+    const [results, setResults] = useState([0,0,0,0]);
+    const [answers, setAnswers] = useState(["","","",""]);
 
     // Updates username when user types, changes to uppercase, and requires at least one letter to unlock button 
     function handleChange(event) {
@@ -99,16 +100,33 @@ export default function Play() {
         return onValue(query, (snapshot) => {
           const data = snapshot.val();
 
+          // Resets responses array 
+           responses = []
+
             //Collects all responses into an array 
             for (const property in data) {
-                responses.push(data[property][currentQuestion].answer)
+                if (Object.hasOwn(data[property], currentQuestion)) {
+                 responses.push(data[property][currentQuestion].answer)
+               }
             }
 
             //Counts the number of each different response in the array 
-            responses.forEach(function (x) { counts[x] = (counts[x] || 0) + 1; });
-        
+            counts = responses.reduce((count, item) => (count[item] = count[item] + 1 || 1, count), {});
+
+           console.log("results", results, "counts", Object.values(counts))
+
+           if (JSON.stringify(results) !== JSON.stringify(Object.values(counts))){
+            setResults(Object.values(counts))
+           }
+
+           if (JSON.stringify(answers) !== JSON.stringify(Object.keys(counts))){
+            setAnswers(Object.keys(counts))
+           }
+
         });
       })
+
+      console.log("responses", responses, "counts", counts)
 
       //Maps possible answers for each question into label/value format for UI 
       let options = content.questions[currentQuestion].options.map( option => ({
@@ -155,22 +173,28 @@ export default function Play() {
             </>
         }
       
-        { playerReady && GMReady &&
+        { GMReady &&
             <>
                 <h1>Q: {content.questions[currentQuestion].question}</h1>
 
                 <RadioGroup onChange={e => { logAnswer(e, currentQuestion) }} data={options}/>
 
-                { showResults && 
+             
                 <>
                     <h2>A: {content.questions[currentQuestion].answer}</h2>
                     <Chart>
+                        ChartTitle text="Results" />
+                        <ChartCategoryAxis>
+                            <ChartCategoryAxisItem categories={answers}>
+                                <ChartCategoryAxisTitle text="Options" />
+                            </ChartCategoryAxisItem>
+                        </ChartCategoryAxis>
                         <ChartSeries>
-                            <ChartSeriesItem type="bar" data={Object.values(counts)} />
+                            <ChartSeriesItem type="bar" data={results} />
                         </ChartSeries>
                     </Chart>
                 </>
-                }
+                
             </>
         }
     </main>
