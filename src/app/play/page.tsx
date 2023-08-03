@@ -5,7 +5,7 @@ import styles from './page.module.scss'
 import { TextBox, InputPrefix, InputSeparator, RadioGroup } from "@progress/kendo-react-inputs"
 import { Icon } from "@progress/kendo-react-common";
 import { Button } from "@progress/kendo-react-buttons"; 
-import { Chart, ChartCategoryAxis, ChartCategoryAxisItem, ChartCategoryAxisTitle, ChartSeries, ChartSeriesItem } from "@progress/kendo-react-charts";
+import { Chart, ChartCategoryAxis, ChartCategoryAxisItem, ChartCategoryAxisTitle, ChartSeries, ChartSeriesItem, ChartValueAxis, ChartValueAxisItem } from "@progress/kendo-react-charts";
 import { database } from "../firebase/config";
 import { ref, set, onValue } from "firebase/database";
 import { useState, useEffect } from 'react';
@@ -132,8 +132,6 @@ export default function Play() {
       let options = content.questions[currentQuestion].options.map( option => ({
         label: option, value: option 
       }))
-
-      
       
 
   return (
@@ -189,6 +187,9 @@ export default function Play() {
                                 <ChartCategoryAxisTitle text="Options" />
                             </ChartCategoryAxisItem>
                         </ChartCategoryAxis>
+                        <ChartValueAxis>
+                            <ChartValueAxisItem title={{ text: "Responses" }} min={0} />
+                        </ChartValueAxis>
                         <ChartSeries>
                             <ChartSeriesItem type="bar" data={results} />
                         </ChartSeries>
