@@ -13,6 +13,7 @@ export default function GM() {
     const [GMReady, setGMReady] = useState(false);
     const [timer, setTimer] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(0)
+    const [responses, setResponses] = useState([])
 
     const id = useRef(null);
     const clear = () => {
@@ -52,6 +53,30 @@ export default function GM() {
           }
       )
 
+      //Watches and counts user responses in real time 
+      let answers = []
+
+      useEffect(() => {
+        const query = ref(database, "gameId/" + 'players');
+        return onValue(query, (snapshot) => {
+          const data = snapshot.val();
+
+          // Resets responses array 
+           answers = []
+
+            //Collects all responses into an array 
+            for (const property in data) {
+                if (Object.hasOwn(data[property], currentQuestion)) {
+                 answers.push(data[property][currentQuestion].answer)
+               }
+            }
+
+            if (JSON.stringify(responses) !== JSON.stringify(answers)){
+              setResponses(answers); 
+            }
+        });
+      })
+
     function handleSubmit() {
         set(ref(database, "gameId/" + 'GM/gmReady'), {
             gmReady: !GMReady,
@@ -76,15 +101,31 @@ export default function GM() {
         setTimer(0)
     }
 
+    function prevQuestion() {
+      if (currentQuestion-1 >= 0) {
+        set(ref(database, "gameId/" + 'GM/currentQuestion/' ), {
+          questionNumber: currentQuestion-1,
+          showResults: false
+        });
+      }
+      setTimer(0)
+  }
+
     function showResults() {
       set(ref(database, "gameId/" + 'GM/currentQuestion'), {
         questionNumber: currentQuestion,
         showResults: true
-    });
+    });    
+    }
+
+    function hideResults() {
+      set(ref(database, "gameId/" + 'GM/currentQuestion'), {
+        questionNumber: currentQuestion,
+        showResults: false
+    });    
     }
 
     let totalQuestions = content.questions.length; 
-
 
   return (
     <main>
@@ -111,10 +152,19 @@ export default function GM() {
                 <h2>{content.questions[currentQuestion].question}</h2>
                 <p>This question has been visible to players for {timer} seconds</p>
 
-                <p>TO-DO: show response %s</p>
+                <p>{responses.length}</p>
+
+                <Button onClick={showResults} icon="eye">Show Results</Button>
+                <Button onClick={hideResults} icon="close">Hide Results</Button>
+
+                <br/><br/>
                 
-                <Button onClick={nextQuestion}>Next Question</Button>
-                <Button onClick={showResults}>Show Results</Button>
+                { currentQuestion-1 >= 0 &&        
+                  <Button onClick={prevQuestion} icon="arrow-left">Previous Question</Button>
+                }
+                { currentQuestion+1 !== totalQuestions && 
+                  <Button onClick={nextQuestion} icon="arrow-right" dir="rtl" >Next Question</Button>
+                }
             </>
         }
 
